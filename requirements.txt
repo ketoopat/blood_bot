@@ -2,3 +2,4 @@ pandas==2.2.0
 matplotlib==3.8.2
 seaborn==0.13.1
 aiogram==2.23.1
+fastparquet
