@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 import asyncio
 import os
 
-bot_token = '6583308519:AAHM7QRqg34taX2tDgaOK5ihWM8qKn8QmYk'
-chat_id = '-1002004078431'
+bot_token = os.getenv('BOT_TOKEN')
+chat_id = os.getenv('CHAT_ID')
 
 
 # Fetch .CSVs from url
