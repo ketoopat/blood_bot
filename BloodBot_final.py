@@ -10,6 +10,7 @@ bot_token = os.getenv('BOT_TOKEN')
 chat_id = os.getenv('CHAT_ID')
 
 
+
 # Fetch .CSVs from url
 url_donations_facility = 'https://github.com/MoH-Malaysia/data-darah-public/raw/main/donations_facility.csv'
 
@@ -287,6 +288,58 @@ def process_data_and_generate_charts():
     # Convert 'last_visit_date', 'second_last_visit_date' to datetime
     df_combined['last_visit_date'] = pd.to_datetime(df_combined['last_visit_date'])
     df_combined['second_last_visit_date'] = pd.to_datetime(df_combined['second_last_visit_date'])
+
+        # Define a function to apply to each row
+    def classify_visit(row):
+        # if takde 2nd visit date = one time donor
+        if pd.isna(row['second_last_visit_date']):
+            return 'Once'
+        # if gap days > 2 years, assume donor has lapsed.
+        elif (row['last_visit_date'] - row['second_last_visit_date']).days >= 365 * 2:
+            return 'Lapsed'
+        else:
+            return 'Regular'
+
+    # Apply the function to each row
+    df_combined['visit_classification'] = df_combined.apply(classify_visit, axis=1)
+
+    # Count the occurrences of each category
+    classification_counts = df_combined['visit_classification'].value_counts()
+
+    # Calculate the percentage
+    classification_percentages = (classification_counts / len(df_combined)) * 100
+
+    # Display the result
+    df_visit_classification = pd.DataFrame(classification_percentages)
+    df_visit_classification.reset_index(inplace=True)
+
+    # Round off to the nearest whole number
+    df_visit_classification['count_perc'] = df_visit_classification['count'].round(0).astype(int)
+    df_visit_classification.drop('count', axis=1, inplace=True)
+
+
+    fig4, ax = plt.subplots(figsize=(10, 6))
+
+    # Create the horizontal
+    ax = sns.barplot(x='count_perc', y='visit_classification', data=df_visit_classification, palette='muted', orient='h')
+    plt.xlabel('Percentage')
+    plt.ylabel('Visit Type')
+    plt.title('Donor Regularity: Percentage of Blood Donor Visit Types')
+    plt.xlim(0, 100)  # Set the x-axis limits to 0-100 for proportionate scaling
+
+    # Add the percentage text at the end of each bar
+    for p in ax.patches:
+        width = p.get_width()    # get bar length
+        plt.text(width + 1,       # set the text at 1 unit right of the bar
+                p.get_y() + p.get_height() / 2, # get Y coordinate + half of the bar height
+                '{}%'.format(int(width)), # set variable to display %
+                ha = 'left',   # horizontal alignment
+                va = 'center') # vertical alignment
+    plt.tight_layout()
+
+    # Save 4th chart
+    save_chart(plt, 'chart_4', chart_file_paths)
+
     
     return chart_file_paths
 
