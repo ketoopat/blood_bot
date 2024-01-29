@@ -4,8 +4,11 @@ import seaborn as sns
 from aiogram import Bot, types
 from datetime import datetime, timedelta
 import asyncio
+import pytz
 import os
 
+
+malaysia_timezone = pytz.timezone('Asia/Kuala_Lumpur')
 bot_token = os.getenv('BOT_TOKEN')
 chat_id = os.getenv('CHAT_ID')
 
@@ -35,7 +38,7 @@ df_blood_donation = pd.read_parquet(url_blood_donation, engine='fastparquet') # 
 # Function to check if T-1 date is present in dataset
 def df_maxDate_t1(df, date_column='date'):
     df[date_column] = pd.to_datetime(df[date_column])
-    t_minus_one = (datetime.now() - timedelta(days=1)).date()
+    t_minus_one = (datetime.now(malaysia_timezone) - timedelta(days=1)).date()
     max_date_in_df = df[date_column].max().date()
     return max_date_in_df == t_minus_one # Compare max date from each datasets vs T-1, if true chart will be sent else only alert message.
 
