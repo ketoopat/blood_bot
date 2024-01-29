@@ -392,7 +392,7 @@ if __name__ == "__main__":
         send_to_tele()  # Proceed to send charts if all checks pass
     else:
         missing_dfs_str = ', '.join(missing_data_dfs)
-        alert_message = f"T-1 data is currently unavailable at this time for the following DataFrame(s): {missing_dfs_str}."
+        alert_message = f"T-1 data is currently unavailable at this time for the following dataframe(s): {missing_dfs_str}."
         print(alert_message)
         loop = asyncio.get_event_loop()
         loop.run_until_complete(send_alert_message(bot_token, chat_id, alert_message))
