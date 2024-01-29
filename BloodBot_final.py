@@ -233,8 +233,6 @@ def process_data_and_generate_charts():
     avg_interval_table_filtered = avg_interval_per_age_group_filtered.reset_index()
     avg_interval_table_filtered.columns = ['Age Group', 'Average Interval Between Visits (days)']
 
-    # Data from your DataFrame
-
     # Specify a palette with a different color for each age group
     colors = sns.color_palette('tab10', n_colors=len(avg_interval_table_filtered['Age Group'].unique()))
 
@@ -289,7 +287,6 @@ def process_data_and_generate_charts():
     df_combined['last_visit_date'] = pd.to_datetime(df_combined['last_visit_date'])
     df_combined['second_last_visit_date'] = pd.to_datetime(df_combined['second_last_visit_date'])
 
-        # Define a function to apply to each row
     def classify_visit(row):
         # if takde 2nd visit date = one time donor
         if pd.isna(row['second_last_visit_date']):
@@ -352,9 +349,6 @@ async def send_charts(bot_token, chat_id, chart_file_paths):
 
 def send_to_tele():
     try:
-        # Your bot token and chat_id (Consider retrieving these from environment variables or a secure source)
-        bot_token = os.environ.get('BOT_TOKEN')
-        chat_id = os.environ.get('CHAT_ID')
 
         # Process data and generate charts
         chart_file_paths = process_data_and_generate_charts()
@@ -373,6 +367,5 @@ def send_to_tele():
             'body': f'An error occurred: {str(e)}'
         }
 
-# For local testing (uncomment when testing locally)
 if __name__ == "__main__":
     send_to_tele()
