@@ -353,8 +353,8 @@ async def send_charts(bot_token, chat_id, chart_file_paths):
 def send_to_tele():
     try:
         # Your bot token and chat_id (Consider retrieving these from environment variables or a secure source)
-        # bot_token = os.environ.get('BOT_TOKEN')
-        # chat_id = os.environ.get('CHAT_ID')
+        bot_token = os.environ.get('BOT_TOKEN')
+        chat_id = os.environ.get('CHAT_ID')
 
         # Process data and generate charts
         chart_file_paths = process_data_and_generate_charts()
