@@ -9,8 +9,6 @@ import os
 bot_token = os.getenv('BOT_TOKEN')
 chat_id = os.getenv('CHAT_ID')
 
-
-
 # Fetch .CSVs from url
 url_donations_facility = 'https://github.com/MoH-Malaysia/data-darah-public/raw/main/donations_facility.csv'
 
@@ -33,6 +31,13 @@ df_newdonors_facility = pd.read_csv(url_newdonors_facility)
 df_newdonors_state = pd.read_csv(url_newdonors_state)
 
 df_blood_donation = pd.read_parquet(url_blood_donation, engine='fastparquet') # parquet file
+
+# Function to check if T-1 date is present in dataset
+def df_maxDate_t1(df, date_column='date'):
+    df[date_column] = pd.to_datetime(df[date_column])
+    t_minus_one = (datetime.now() - timedelta(days=1)).date()
+    max_date_in_df = df[date_column].max().date()
+    return max_date_in_df == t_minus_one # Compare max date from each datasets vs T-1, if true chart will be sent else only alert message.
 
 # Function to save chart to a file
 def save_chart(plt, filename, chart_file_paths):
@@ -346,14 +351,19 @@ async def send_charts(bot_token, chat_id, chart_file_paths):
     for file_path in chart_file_paths:
         with open(file_path, 'rb') as photo:
             await bot.send_photo(chat_id=chat_id, photo=photo)
+            await bot.close()
+
+# Function to message if T-1 != max_date_in_df
+async def send_alert_message(bot_token, chat_id, message):
+    bot = Bot(token=bot_token)
+    await bot.send_message(chat_id,message)
+    await bot.close()
 
 def send_to_tele():
     try:
-
-        # Process data and generate charts
         chart_file_paths = process_data_and_generate_charts()
 
-        # Send charts through the bot
+        # Send charts through tele bot
         loop = asyncio.get_event_loop()
         loop.run_until_complete(send_charts(bot_token, chat_id, chart_file_paths))
 
@@ -368,4 +378,21 @@ def send_to_tele():
         }
 
 if __name__ == "__main__":
-    send_to_tele()
+
+    dataframes_check = {
+        'donations_facility': df_donations_facility,
+        'donations_state': df_donations_state,
+        'newdonors_facility': df_newdonors_facility,
+        'newdonors_state': df_newdonors_state
+    }
+
+    missing_data_dfs = [df_name for df_name, df in dataframes_check.items() if not df_maxDate_t1(df)]
+
+    if not missing_data_dfs:
+        send_to_tele()  # Proceed to send charts if all checks pass
+    else:
+        missing_dfs_str = ', '.join(missing_data_dfs)
+        alert_message = f"T-1 data is currently unavailable at this time for the following DataFrame(s): {missing_dfs_str}."
+        print(alert_message)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(send_alert_message(bot_token, chat_id, alert_message))
